@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>予約一覧 | Tabico</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>予約一覧</h1>
+    <table id="reservation-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ゲスト名</th>
+                <th>チェックイン</th>
+                <th>チェックアウト</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- ここに予約データが入ります -->
+        </tbody>
+    </table>
+    <script>
+    // 予約データをAPIから取得してテーブルに表示
+    fetch('/reservations')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector('#reservation-table tbody');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${r.id}</td><td>${r.guestName}</td><td>${r.checkIn}</td><td>${r.checkOut}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+    </script>
+</body>
+</html> 

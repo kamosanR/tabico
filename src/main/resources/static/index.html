@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>予約一覧 | Tabico</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .header-actions {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0 0.5rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <h1>予約一覧</h1>
+    <div class="header-actions">
+        <a href="/login.html" class="btn">ログイン</a>
+        <a href="/register.html" class="btn btn-success">会員登録</a>
+    </div>
+    <table id="reservation-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ゲスト名</th>
+                <th>チェックイン</th>
+                <th>チェックアウト</th>
+                <th>部屋タイプ</th>
+                <th>宿泊人数</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- ここに予約データが入ります -->
+        </tbody>
+    </table>
+    <script>
+    // 予約データをAPIから取得してテーブルに表示
+    fetch('/reservations')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector('#reservation-table tbody');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${r.id}</td><td>${r.guestName}</td><td>${r.checkIn}</td><td>${r.checkOut}</td><td>${r.roomType || '-'}</td><td>${r.numberOfGuests || '-'}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+    </script>
+</body>
+</html> 

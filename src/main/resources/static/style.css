@@ -1,0 +1,30 @@
+body {
+    font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    background: #f7f7f7;
+    margin: 0;
+    padding: 0;
+}
+h1 {
+    text-align: center;
+    margin-top: 2rem;
+    color: #333;
+}
+table {
+    margin: 2rem auto;
+    border-collapse: collapse;
+    width: 80%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+th {
+    background: #f0f0f0;
+    color: #222;
+}
+tr:nth-child(even) {
+    background: #fafafa;
+} 

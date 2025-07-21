@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>予約作成 | Tabico</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .user-info {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-group {
+            flex: 1;
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .success {
+            color: #28a745;
+            text-align: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #d4edda;
+            border-radius: 4px;
+        }
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8d7da;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>新規予約作成</h1>
+    <div class="container">
+        <div class="user-info">
+            <div>
+                <strong id="user-name"></strong> さん、こんにちは！
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="location.href='/dashboard.html'">ダッシュボード</button>
+                <button class="btn btn-secondary" onclick="viewReservations()">予約一覧を見る</button>
+                <button class="btn btn-danger" onclick="logout()">ログアウト</button>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div id="success-message" class="success" style="display: none;"></div>
+            <div id="error-message" class="error" style="display: none;"></div>
+            
+            <form id="booking-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="checkIn">チェックイン日 *</label>
+                        <input type="date" id="checkIn" name="checkIn" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="checkOut">チェックアウト日 *</label>
+                        <input type="date" id="checkOut" name="checkOut" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="roomType">部屋タイプ</label>
+                        <select id="roomType" name="roomType">
+                            <option value="スタンダード">スタンダード</option>
+                            <option value="デラックス">デラックス</option>
+                            <option value="スイート">スイート</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="numberOfGuests">宿泊人数</label>
+                        <select id="numberOfGuests" name="numberOfGuests">
+                            <option value="1">1名</option>
+                            <option value="2">2名</option>
+                            <option value="3">3名</option>
+                            <option value="4">4名</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">予約作成</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ログイン状態をチェック
+        const currentMember = localStorage.getItem('currentMember');
+        if (!currentMember) {
+            location.href = '/login.html';
+        } else {
+            const member = JSON.parse(currentMember);
+            document.getElementById('user-name').textContent = member.name;
+        }
+
+        // 今日の日付を最小値に設定
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('checkIn').min = today;
+        document.getElementById('checkOut').min = today;
+
+        // チェックイン日が変更されたら、チェックアウト日の最小値を更新
+        document.getElementById('checkIn').addEventListener('change', function() {
+            const checkInDate = this.value;
+            const checkOutInput = document.getElementById('checkOut');
+            
+            if (checkInDate) {
+                const minCheckOut = new Date(checkInDate);
+                minCheckOut.setDate(minCheckOut.getDate() + 1);
+                checkOutInput.min = minCheckOut.toISOString().split('T')[0];
+                
+                // チェックアウト日がチェックイン日より前の場合、リセット
+                if (checkOutInput.value && checkOutInput.value <= checkInDate) {
+                    checkOutInput.value = '';
+                }
+            }
+        });
+
+        document.getElementById('booking-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const member = JSON.parse(localStorage.getItem('currentMember'));
+            const formData = new FormData(e.target);
+            
+            const reservation = {
+                guestName: member.name,
+                checkIn: formData.get('checkIn'),
+                checkOut: formData.get('checkOut'),
+                roomType: formData.get('roomType'),
+                numberOfGuests: parseInt(formData.get('numberOfGuests')),
+                member: { id: member.id }
+            };
+
+            try {
+                const response = await fetch('/reservations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(reservation)
+                });
+
+                if (response.ok) {
+                    const savedReservation = await response.json();
+                    document.getElementById('success-message').innerHTML = 
+                        `予約が完了しました！予約番号: ${savedReservation.id}<br>
+                        <a href="/dashboard.html" class="btn" style="margin-top: 1rem;">ダッシュボードに戻る</a>
+                        <a href="/my-reservations.html" class="btn btn-info" style="margin-top: 1rem;">予約一覧を見る</a>`;
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('error-message').style.display = 'none';
+                    document.getElementById('booking-form').reset();
+                } else {
+                    document.getElementById('error-message').textContent = '予約に失敗しました。';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('success-message').style.display = 'none';
+                }
+            } catch (error) {
+                document.getElementById('error-message').textContent = 'エラーが発生しました: ' + error.message;
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('success-message').style.display = 'none';
+            }
+        });
+
+        function viewReservations() {
+            location.href = '/my-reservations.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('currentMember');
+            location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>
