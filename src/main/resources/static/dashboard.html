@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>会員ダッシュボード | Tabico</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .welcome-section {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .welcome-section h2 {
+            margin: 0 0 1rem 0;
+            font-size: 2rem;
+        }
+        .welcome-section p {
+            margin: 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .card h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        .card p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        .btn-info {
+            background: #17a2b8;
+        }
+        .btn-info:hover {
+            background: #138496;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .user-actions {
+            text-align: center;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>会員ダッシュボード</h1>
+    <div class="container">
+        <div class="welcome-section">
+            <h2>ようこそ、<span id="user-name"></span>さん！</h2>
+            <p>Tabicoをご利用いただき、ありがとうございます。</p>
+        </div>
+
+        <div class="stats" id="stats-section">
+            <div class="stat-item">
+                <div class="stat-number" id="total-reservations">-</div>
+                <div class="stat-label">総予約数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="active-reservations">-</div>
+                <div class="stat-label">有効な予約</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="upcoming-reservations">-</div>
+                <div class="stat-label">今後の予約</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>🏨 新規予約</h3>
+                <p>新しい宿泊予約を作成します。お好みの日程と部屋タイプをお選びください。</p>
+                <a href="/booking.html" class="btn btn-success">予約を作成する</a>
+            </div>
+
+            <div class="card">
+                <h3>📋 予約一覧</h3>
+                <p>現在の予約状況を確認し、必要に応じて変更やキャンセルを行えます。</p>
+                <a href="/my-reservations.html" class="btn btn-info">予約を確認する</a>
+            </div>
+
+            <div class="card">
+                <h3>👤 プロフィール</h3>
+                <p>会員情報の確認・変更ができます。連絡先情報を最新に保ちましょう。</p>
+                <button class="btn btn-secondary" onclick="showProfile()">プロフィール表示</button>
+            </div>
+
+            <div class="card">
+                <h3>🏠 全予約一覧</h3>
+                <p>ホテル全体の予約状況を確認できます。空室状況の参考にご利用ください。</p>
+                <a href="/" class="btn">全予約を見る</a>
+            </div>
+        </div>
+
+        <div class="user-actions">
+            <button class="btn btn-danger" onclick="logout()">ログアウト</button>
+        </div>
+    </div>
+
+    <!-- プロフィール表示モーダル -->
+    <div id="profile-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%;">
+            <h3>プロフィール情報</h3>
+            <div id="profile-content"></div>
+            <button class="btn btn-secondary" onclick="closeProfile()">閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        // ログイン状態をチェック
+        const currentMember = localStorage.getItem('currentMember');
+        if (!currentMember) {
+            location.href = '/login.html';
+        } else {
+            const member = JSON.parse(currentMember);
+            document.getElementById('user-name').textContent = member.name;
+            loadDashboardData(member);
+        }
+
+        async function loadDashboardData(member) {
+            try {
+                // 予約データを取得
+                const response = await fetch('/reservations');
+                const allReservations = await response.json();
+                
+                // 会員の予約のみフィルタリング
+                const myReservations = allReservations.filter(r => 
+                    r.member && r.member.id === member.id
+                );
+
+                // 統計情報を計算
+                const totalReservations = myReservations.length;
+                const activeReservations = myReservations.filter(r => r.status === 'CONFIRMED').length;
+                
+                const today = new Date();
+                const upcomingReservations = myReservations.filter(r => {
+                    const checkInDate = new Date(r.checkIn);
+                    return checkInDate > today && r.status === 'CONFIRMED';
+                }).length;
+
+                // 統計情報を表示
+                document.getElementById('total-reservations').textContent = totalReservations;
+                document.getElementById('active-reservations').textContent = activeReservations;
+                document.getElementById('upcoming-reservations').textContent = upcomingReservations;
+
+            } catch (error) {
+                console.error('ダッシュボードデータの取得に失敗しました:', error);
+            }
+        }
+
+        function showProfile() {
+            const member = JSON.parse(localStorage.getItem('currentMember'));
+            const profileContent = document.getElementById('profile-content');
+            
+            profileContent.innerHTML = `
+                <div style="margin: 1rem 0;">
+                    <strong>お名前:</strong> ${member.name}
+                </div>
+                <div style="margin: 1rem 0;">
+                    <strong>メールアドレス:</strong> ${member.email}
+                </div>
+                <div style="margin: 1rem 0;">
+                    <strong>電話番号:</strong> ${member.phone}
+                </div>
+                <div style="margin: 1rem 0;">
+                    <strong>住所:</strong> ${member.address || '未設定'}
+                </div>
+            `;
+            
+            document.getElementById('profile-modal').style.display = 'block';
+        }
+
+        function closeProfile() {
+            document.getElementById('profile-modal').style.display = 'none';
+        }
+
+        function logout() {
+            if (confirm('ログアウトしますか？')) {
+                localStorage.removeItem('currentMember');
+                location.href = '/login.html';
+            }
+        }
+
+        // モーダルの外側をクリックしたら閉じる
+        document.getElementById('profile-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProfile();
+            }
+        });
+    </script>
+</body>
+</html>

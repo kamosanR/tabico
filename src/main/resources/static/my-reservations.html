@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>マイ予約 | Tabico</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .user-info {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .status-confirmed {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-cancelled {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .no-reservations {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>マイ予約</h1>
+    <div class="container">
+        <div class="user-info">
+            <div>
+                <strong id="user-name"></strong> さんの予約一覧
+            </div>
+            <div>
+                <a href="/dashboard.html" class="btn">ダッシュボード</a>
+                <a href="/booking.html" class="btn btn-success">新規予約</a>
+                <a href="/" class="btn btn-secondary">全予約一覧</a>
+                <button class="btn btn-danger" onclick="logout()">ログアウト</button>
+            </div>
+        </div>
+
+        <div id="reservations-container">
+            <!-- 予約データがここに表示されます -->
+        </div>
+
+        <div id="no-reservations" class="no-reservations" style="display: none;">
+            <h3>予約がありません</h3>
+            <p>新しい予約を作成してみましょう。</p>
+            <a href="/booking.html" class="btn btn-success">新規予約作成</a>
+        </div>
+    </div>
+
+    <script>
+        // ログイン状態をチェック
+        const currentMember = localStorage.getItem('currentMember');
+        if (!currentMember) {
+            location.href = '/login.html';
+        } else {
+            const member = JSON.parse(currentMember);
+            document.getElementById('user-name').textContent = member.name;
+            loadMyReservations(member.id);
+        }
+
+        async function loadMyReservations(memberId) {
+            try {
+                const response = await fetch('/reservations');
+                const allReservations = await response.json();
+                
+                // 会員の予約のみフィルタリング
+                const myReservations = allReservations.filter(r => 
+                    r.member && r.member.id === memberId
+                );
+
+                const container = document.getElementById('reservations-container');
+                const noReservationsDiv = document.getElementById('no-reservations');
+
+                if (myReservations.length === 0) {
+                    container.innerHTML = '';
+                    noReservationsDiv.style.display = 'block';
+                } else {
+                    noReservationsDiv.style.display = 'none';
+                    
+                    const table = document.createElement('table');
+                    table.id = 'reservation-table';
+                    table.innerHTML = `
+                        <thead>
+                            <tr>
+                                <th>予約番号</th>
+                                <th>宿泊者名</th>
+                                <th>チェックイン</th>
+                                <th>チェックアウト</th>
+                                <th>部屋タイプ</th>
+                                <th>宿泊人数</th>
+                                <th>ステータス</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `;
+
+                    const tbody = table.querySelector('tbody');
+                    myReservations.forEach(r => {
+                        const tr = document.createElement('tr');
+                        const statusClass = r.status === 'CONFIRMED' ? 'status-confirmed' : 'status-cancelled';
+                        const statusText = r.status === 'CONFIRMED' ? '確定' : 'キャンセル';
+                        
+                        tr.innerHTML = `
+                            <td>${r.id}</td>
+                            <td>${r.guestName}</td>
+                            <td>${r.checkIn}</td>
+                            <td>${r.checkOut}</td>
+                            <td>${r.roomType || '-'}</td>
+                            <td>${r.numberOfGuests || '-'}</td>
+                            <td class="${statusClass}">${statusText}</td>
+                            <td>
+                                ${r.status === 'CONFIRMED' ? 
+                                    `<button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" onclick="cancelReservation(${r.id})">キャンセル</button>` : 
+                                    '-'
+                                }
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    container.innerHTML = '';
+                    container.appendChild(table);
+                }
+            } catch (error) {
+                console.error('予約の取得に失敗しました:', error);
+            }
+        }
+
+        async function cancelReservation(reservationId) {
+            if (!confirm('この予約をキャンセルしますか？')) {
+                return;
+            }
+
+            try {
+                // キャンセル機能は今回は簡易実装として省略
+                alert('キャンセル機能は実装予定です');
+            } catch (error) {
+                alert('キャンセルに失敗しました');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentMember');
+            location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>
